@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "prebuild": "orval",
-    "predev": "orval",
+    "predev": "pnpm prebuild",
     "dev": "vite --mode mocks",
-    "dev:mocks": "vite --mode mocks",
-    "dev:live": "vite --mode live",
+    "dev:mocks": "pnpm dev --mode mocks",
+    "dev:live": "pnpm dev --mode live",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
