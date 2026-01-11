@@ -10,7 +10,7 @@ import { PageHeader } from '@components/PageHeader';
 import { SubTabs, type SubTab } from '@components/SubTabs';
 import { ProcessDefinitionsTab } from './tabs/ProcessDefinitionsTab';
 import { ProcessInstancesTab } from './tabs/ProcessInstancesTab';
-import { createProcessDefinition } from '@base/api';
+import { createProcessDefinition } from '@base/openapi';
 
 type TabValue = 'definitions' | 'instances';
 
@@ -69,8 +69,8 @@ export const ProcessesPage = () => {
 
     setUploading(true);
     try {
-      const xml = await file.text();
-      await createProcessDefinition(xml);
+      // Pass the file as a Blob for multipart/form-data upload
+      await createProcessDefinition({ resource: file });
       setSnackbar({
         open: true,
         message: t('processes:messages.uploadSuccess'),
