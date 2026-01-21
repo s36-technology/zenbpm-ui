@@ -64,10 +64,9 @@ test.describe('Process Definition Detail Page', () => {
     await expect(page.getByText('Start New Instance')).toBeVisible();
     await expect(page.getByText('Process Variables (JSON)')).toBeVisible();
 
-    // JSON editor should be present with default value
-    const jsonEditor = page.getByRole('textbox', { name: '{}' });
-    await expect(jsonEditor).toBeVisible();
-    await expect(jsonEditor).toHaveValue('{}');
+    // Monaco JSON editor should be present
+    const monacoEditor = page.locator('.monaco-editor');
+    await expect(monacoEditor).toBeVisible();
 
     // Cancel button should close dialog
     await page.getByRole('button', { name: 'Cancel' }).click();
@@ -79,19 +78,41 @@ test.describe('Process Definition Detail Page', () => {
     const startButton = page.getByTestId('process-definition-start-instance-button');
     await startButton.click();
 
-    // Enter invalid JSON
-    const jsonEditor = page.getByRole('textbox', { name: '{}' });
-    await jsonEditor.fill('invalid json');
+    // Wait for Monaco editor to load
+    const monacoEditor = page.locator('.monaco-editor');
+    await expect(monacoEditor).toBeVisible();
+
+    // Start button should be enabled with default valid JSON
+    const startDialogButton = page.getByRole('button', { name: 'Start' });
+    await expect(startDialogButton).toBeEnabled();
+
+    // Use Monaco's API to set invalid JSON content
+    await page.evaluate(() => {
+      const editor = (window as unknown as { monaco?: { editor?: { getEditors?: () => { setValue: (v: string) => void }[] } } }).monaco?.editor?.getEditors?.()[0];
+      if (editor) {
+        editor.setValue('invalid json');
+      }
+    });
+
+    // Wait for validation to process
+    await page.waitForTimeout(300);
 
     // Should show error
     await expect(page.getByText('Invalid JSON format')).toBeVisible();
 
     // Start button should be disabled
-    const startDialogButton = page.getByRole('button', { name: 'Start' });
     await expect(startDialogButton).toBeDisabled();
 
-    // Enter valid JSON
-    await jsonEditor.fill('{"key": "value"}');
+    // Set valid JSON content
+    await page.evaluate(() => {
+      const editor = (window as unknown as { monaco?: { editor?: { getEditors?: () => { setValue: (v: string) => void }[] } } }).monaco?.editor?.getEditors?.()[0];
+      if (editor) {
+        editor.setValue('{"key": "value"}');
+      }
+    });
+
+    // Wait for validation to process
+    await page.waitForTimeout(300);
 
     // Error should disappear and button should be enabled
     await expect(page.getByText('Invalid JSON format')).not.toBeVisible();

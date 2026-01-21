@@ -149,8 +149,8 @@ test.describe('Decision Definition Detail Page', () => {
 
     // Check metadata fields are visible using more specific selector
     await expect(page.getByText('DMN Resource ID')).toBeVisible();
-    // Use getByRole to be more specific about the metadata Key label
-    await expect(page.locator('span').filter({ hasText: /^Key$/ })).toBeVisible();
+    // Check that metadata section contains the key field - use first() to avoid strict mode violation
+    await expect(page.locator('span').filter({ hasText: /^Key$/ }).first()).toBeVisible();
   });
 
   test('should display DMN diagram placeholder', async ({ page }) => {

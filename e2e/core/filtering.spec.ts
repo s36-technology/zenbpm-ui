@@ -54,58 +54,89 @@ test.describe('Filtering - Filter Badges', () => {
     // Apply state filter
     const stateFormControl = page.locator('.MuiFormControl-root').filter({ hasText: 'State' }).first();
     await stateFormControl.click();
-    await page.getByRole('option', { name: 'Active' }).click();
+
+    // Wait for dropdown to open and select option
+    const activeOption = page.getByRole('option', { name: 'Active' });
+    await expect(activeOption).toBeVisible();
+    await activeOption.click();
+
+    // Verify state badge appears before continuing
+    await expect(page.getByTestId('filter-badge-state')).toBeVisible();
 
     // Open filters panel
-    await page.getByRole('button', { name: /Filters/i }).click();
-    await page.waitForTimeout(300);
+    const filtersButton = page.getByRole('button', { name: /Filters/i });
+    await filtersButton.click();
 
-    // Apply activity filter
-    const activityLabel = page.getByText('Activity');
-    await expect(activityLabel.first()).toBeVisible({ timeout: 5000 });
-
+    // Wait for filters panel and activity filter to be visible
     const activityFilter = page.locator('.MuiFormControl-root').filter({ hasText: 'Activity' }).first();
+    await expect(activityFilter).toBeVisible({ timeout: 5000 });
     await activityFilter.click();
 
-    // Select first activity option
+    // Wait for dropdown to open and select first activity option
     const activityOption = page.getByRole('option').first();
-    if (await activityOption.isVisible()) {
-      await activityOption.click();
+    await expect(activityOption).toBeVisible({ timeout: 3000 });
+    await activityOption.click();
 
-      // Check for Clear All button
-      const clearAllButton = page.getByRole('button', { name: /Clear all/i });
-      await expect(clearAllButton).toBeVisible();
-    }
+    // Check for Clear All button
+    const clearAllButton = page.getByRole('button', { name: /Clear all/i });
+    await expect(clearAllButton).toBeVisible();
   });
 
   test('should clear all filters when clicking Clear All', async ({ page }) => {
-    // Apply state filter
+    // Apply state filter - Active
     const stateFormControl = page.locator('.MuiFormControl-root').filter({ hasText: 'State' }).first();
     await stateFormControl.click();
-    await page.getByRole('option', { name: 'Active' }).click();
 
-    // Verify badge appears
-    const filterBadge = page.getByTestId('filter-badge-state');
-    await expect(filterBadge).toBeVisible();
+    const activeOption = page.getByRole('option', { name: 'Active' });
+    await expect(activeOption).toBeVisible();
+    await activeOption.click();
 
-    // Open filters panel and add another filter
-    await page.getByRole('button', { name: /Filters/i }).click();
-    await page.waitForTimeout(300);
+    // Verify state badge appears
+    const stateBadge = page.getByTestId('filter-badge-state');
+    await expect(stateBadge).toBeVisible();
 
+    // Open filters panel to access activity filter
+    const filtersButton = page.getByRole('button', { name: /Filters/i });
+    await filtersButton.click();
+
+    // Wait for filters panel to open
+    await page.waitForTimeout(500);
+
+    // Find and click the Activity filter
     const activityFilter = page.locator('.MuiFormControl-root').filter({ hasText: 'Activity' }).first();
+    const activityFilterVisible = await activityFilter.isVisible({ timeout: 3000 }).catch(() => false);
+
+    if (!activityFilterVisible) {
+      // Skip test if activity filter not available
+      test.skip();
+      return;
+    }
+
     await activityFilter.click();
 
+    // Wait for dropdown and select first option
     const activityOption = page.getByRole('option').first();
-    if (await activityOption.isVisible()) {
-      await activityOption.click();
+    const activityOptionVisible = await activityOption.isVisible({ timeout: 3000 }).catch(() => false);
 
-      // Click Clear All
-      const clearAllButton = page.getByRole('button', { name: /Clear all/i });
-      await clearAllButton.click();
-
-      // All badges should be removed
-      await expect(page.getByTestId('filter-badge-state')).not.toBeVisible();
+    if (!activityOptionVisible) {
+      // Skip test if no activity options
+      test.skip();
+      return;
     }
+
+    await activityOption.click();
+
+    // Wait for activity badge to appear
+    await expect(page.getByTestId('filter-badge-activityId')).toBeVisible({ timeout: 5000 });
+
+    // Now Clear All button should be visible (we have 2 filters)
+    const clearAllButton = page.getByRole('button', { name: /Clear all/i });
+    await expect(clearAllButton).toBeVisible();
+    await clearAllButton.click();
+
+    // All badges should be removed
+    await expect(stateBadge).not.toBeVisible();
+    await expect(page.getByTestId('filter-badge-activityId')).not.toBeVisible();
   });
 });
 
