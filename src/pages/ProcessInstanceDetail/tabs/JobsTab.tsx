@@ -23,7 +23,7 @@ import { JOB_STATE_COLORS } from '../types';
 import { useCompleteJobDialog } from '../modals/useCompleteJobDialog';
 import { useAssignJobDialog } from '../modals/useAssignJobDialog';
 import {useUpdateRetriesDialog} from "@pages/ProcessInstanceDetail/modals/useUpdateRetriesDialog.ts";
-import { completeJobByKey, assignJob, customInstance } from '@base/openapi';
+import { assignJob, completeJob, customInstance } from '@base/openapi';
 
 // updateJobRetries is not in generated API, use direct axios call
 const updateJobRetries = async (jobKey: string, retries: number): Promise<void> => {
@@ -67,7 +67,7 @@ export const JobsTab = ({ jobs, onRefetch, onShowNotification }: JobsTabProps) =
 
   const handleCompleteJob = useCallback(async (jobKey: string, variables: Record<string, unknown>) => {
     try {
-      await completeJobByKey(jobKey, { variables });
+      await completeJob(jobKey, { variables });
       onShowNotification(t('processInstance:messages.jobCompleted'), 'success');
       await onRefetch();
     } catch {
@@ -266,7 +266,7 @@ export const JobsTab = ({ jobs, onRefetch, onShowNotification }: JobsTabProps) =
         open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
       >
-        {menuJob?.type === 'user-task' && (
+        {menuJob?.type === 'user-task-type' && (
           <MenuItem
             onClick={() => {
               openAssignJobDialog({ job: menuJob, onAssign: handleAssignJob });
