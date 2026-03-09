@@ -95,7 +95,7 @@ export const StartInstanceDialog = ({
         setLoadingProcesses(true);
         try {
           // Load all definitions to have all versions available
-          const data = await getProcessDefinitions({ size: 500 });
+          const data = await getProcessDefinitions({ size: 100 });
           setAllDefinitions(data.items || []);
         } catch (err) {
           console.error('Failed to load process definitions:', err);
